@@ -17,6 +17,7 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 if (params.fasta) { ch_fasta = file(params.fasta) } else { exit 1, 'Genome fasta not specified!'      }
+if (!(params.sample_type == 'dna' || params.sample_type == 'rna')) { exit 1, 'Sample type must be specified as one of: `dna` or `rna`!'      }
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,48 +94,48 @@ workflow DRAGEN {
 
     if (!params.skip_dragen) {
 
-        //
-        // MODULE: Generate DRAGEN DNA index
-        //
-        DRAGEN_BUILDHASHTABLE_DNA (
-            ch_fasta
-        )
-        ch_versions = ch_versions.mix(DRAGEN_BUILDHASHTABLE_DNA.out.versions)
+        if(params.sample_type == 'dna'){
 
-        //
-        // MODULE: Generate DRAGEN RNA index
-        //
-        DRAGEN_BUILDHASHTABLE_RNA (
-            ch_fasta
-        )
-        ch_versions = ch_versions.mix(DRAGEN_BUILDHASHTABLE_RNA.out.versions)
+            //
+            // MODULE: Generate DRAGEN DNA index
+            //
+            DRAGEN_BUILDHASHTABLE_DNA (
+                ch_fasta
+            )
+            ch_versions = ch_versions.mix(DRAGEN_BUILDHASHTABLE_DNA.out.versions)
 
-        //
-        // MODULE: Run DRAGEN on DNA samples to generate BAM from FastQ
-        //
-        DRAGEN_FASTQ_TO_BAM_DNA (
-            INPUT_CHECK.out.reads,
-            DRAGEN_BUILDHASHTABLE_DNA.out.index
-        )
-        ch_versions = ch_versions.mix(DRAGEN_FASTQ_TO_BAM_DNA.out.versions.first())
+            //
+            // MODULE: Run DRAGEN on DNA samples
+            //
+            DRAGEN_DNA (
+                INPUT_CHECK.out.reads,
+                DRAGEN_BUILDHASHTABLE_DNA.out.index
+            )
+            ch_versions = ch_versions.mix(DRAGEN_DNA.out.versions.first())
 
-        //
-        // MODULE: Run DRAGEN on DNA samples to generate VCF from FastQ
-        //
-        DRAGEN_FASTQ_TO_VCF_DNA (
-            INPUT_CHECK.out.reads,
-            DRAGEN_BUILDHASHTABLE_DNA.out.index
-        )
-        ch_versions = ch_versions.mix(DRAGEN_FASTQ_TO_VCF_DNA.out.versions.first())
+        }
 
-        //
-        // MODULE: Run DRAGEN on RNA samples to generate BAM from FastQ
-        //
-        DRAGEN_FASTQ_TO_BAM_RNA (
-            INPUT_CHECK.out.reads,
-            DRAGEN_BUILDHASHTABLE_RNA.out.index
-        )
-        ch_versions = ch_versions.mix(DRAGEN_FASTQ_TO_BAM_RNA.out.versions.first())
+        if(params.sample_type == 'rna'){
+
+            //
+            // MODULE: Generate DRAGEN RNA index
+            //
+            DRAGEN_BUILDHASHTABLE_RNA (
+                ch_fasta
+            )
+            ch_versions = ch_versions.mix(DRAGEN_BUILDHASHTABLE_RNA.out.versions)
+
+            //
+            // MODULE: Run DRAGEN on RNA samples
+            //
+            DRAGEN_RNA (
+                INPUT_CHECK.out.reads,
+                DRAGEN_BUILDHASHTABLE_RNA.out.index
+            )
+            ch_versions = ch_versions.mix(DRAGEN_RNA.out.versions.first())
+
+        }
+
     }
 
     //
