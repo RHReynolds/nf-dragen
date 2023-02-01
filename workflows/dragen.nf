@@ -110,12 +110,12 @@ workflow DRAGEN {
 
     if (!params.skip_dragen) {
 
+        assert ch_dragen_index || ch_fasta:
+            "Must provide a genome fasta file ('--fasta') if no index is given!"
+
         if(params.sample_type == 'dna'){
 
             if (!ch_dragen_index) {
-
-                assert ch_dragen_index || ch_fasta:
-                    "Must provide a genome fasta file ('--fasta') if no index is given!"
 
                 //
                 // MODULE: Generate DRAGEN DNA index
@@ -142,9 +142,6 @@ workflow DRAGEN {
         if(params.sample_type == 'rna'){
 
             if (!ch_dragen_index) {
-
-                assert ch_dragen_index || ch_fasta:
-                    "Must provide a genome fasta file ('--fasta') if no index is given!"
 
                 //
                 // MODULE: Generate DRAGEN RNA index
