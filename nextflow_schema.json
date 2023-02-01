@@ -99,7 +99,8 @@
                 },
                 "dragen_index": {
                     "type": "string",
-                    "fa_icon": "fas fa-dragon"
+                    "fa_icon": "fas fa-dragon",
+                    "description": "Specify a path to the precomputed DRAGEN hashtable."
                 }
             }
         },
