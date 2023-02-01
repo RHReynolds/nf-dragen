@@ -11,13 +11,28 @@ WorkflowDragen.initialise(params, log)
 
 // TODO nf-core: Add all file path parameters for the pipeline to the list below
 // Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.fasta, params.multiqc_config ]
+def checkPathParamList = [
+    params.input,
+    params.fasta,
+    params.dragen_index,
+    params.multiqc_config
+    ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Check mandatory parameters and other parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
-if (params.fasta) { ch_fasta = file(params.fasta) } else { exit 1, 'Genome fasta not specified!'      }
+// if (params.fasta) { ch_fasta = file(params.fasta) } else { exit 1, 'Genome fasta not specified!'      }
 if (!(params.sample_type == 'dna' || params.sample_type == 'rna')) { exit 1, 'Sample type must be specified as one of: `dna` or `rna`!'      }
+
+// General params
+ch_fasta = params.fasta ? file(params.fasta) : []
+ch_dragen_index = params.dragen_index ? file(params.dragen_index) : []
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,9 +54,8 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 //
 include { DRAGEN_BUILDHASHTABLE as DRAGEN_BUILDHASHTABLE_DNA } from '../modules/local/dragen_buildhashtable'
 include { DRAGEN_BUILDHASHTABLE as DRAGEN_BUILDHASHTABLE_RNA } from '../modules/local/dragen_buildhashtable'
-include { DRAGEN as DRAGEN_FASTQ_TO_BAM_DNA } from '../modules/local/dragen'
-include { DRAGEN as DRAGEN_FASTQ_TO_VCF_DNA } from '../modules/local/dragen'
-include { DRAGEN as DRAGEN_FASTQ_TO_BAM_RNA } from '../modules/local/dragen'
+include { DRAGEN as DRAGEN_DNA } from '../modules/local/dragen'
+include { DRAGEN as DRAGEN_RNA } from '../modules/local/dragen'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -96,20 +110,28 @@ workflow DRAGEN {
 
         if(params.sample_type == 'dna'){
 
-            //
-            // MODULE: Generate DRAGEN DNA index
-            //
-            DRAGEN_BUILDHASHTABLE_DNA (
-                ch_fasta
-            )
-            ch_versions = ch_versions.mix(DRAGEN_BUILDHASHTABLE_DNA.out.versions)
+            if (!ch_dragen_index) {
+
+                assert ch_dragen_index || ch_fasta:
+                    "Must provide a genome fasta file ('--fasta') if no index is given!"
+
+                //
+                // MODULE: Generate DRAGEN DNA index
+                //
+                DRAGEN_BUILDHASHTABLE_DNA (
+                    ch_fasta
+                )
+                ch_dragen_index = DRAGEN_BUILDHASHTABLE_DNA.out.index
+                ch_versions = ch_versions.mix(DRAGEN_BUILDHASHTABLE_DNA.out.versions)
+
+            }
 
             //
             // MODULE: Run DRAGEN on DNA samples
             //
             DRAGEN_DNA (
                 INPUT_CHECK.out.reads,
-                DRAGEN_BUILDHASHTABLE_DNA.out.index
+                ch_dragen_index
             )
             ch_versions = ch_versions.mix(DRAGEN_DNA.out.versions.first())
 
@@ -117,20 +139,28 @@ workflow DRAGEN {
 
         if(params.sample_type == 'rna'){
 
-            //
-            // MODULE: Generate DRAGEN RNA index
-            //
-            DRAGEN_BUILDHASHTABLE_RNA (
-                ch_fasta
-            )
-            ch_versions = ch_versions.mix(DRAGEN_BUILDHASHTABLE_RNA.out.versions)
+            if (!ch_dragen_index) {
+
+                assert ch_dragen_index || ch_fasta:
+                    "Must provide a genome fasta file ('--fasta') if no index is given!"
+
+                //
+                // MODULE: Generate DRAGEN RNA index
+                //
+                DRAGEN_BUILDHASHTABLE_RNA (
+                    ch_fasta
+                )
+                ch_dragen_index = DRAGEN_BUILDHASHTABLE_RNA.out.index
+                ch_versions = ch_versions.mix(DRAGEN_BUILDHASHTABLE_RNA.out.versions)
+
+            }
 
             //
             // MODULE: Run DRAGEN on RNA samples
             //
             DRAGEN_RNA (
                 INPUT_CHECK.out.reads,
-                DRAGEN_BUILDHASHTABLE_RNA.out.index
+                ch_dragen_index
             )
             ch_versions = ch_versions.mix(DRAGEN_RNA.out.versions.first())
 
