@@ -19,7 +19,6 @@ process DRAGEN {
     tuple val(meta), path("${prefix}*.vcf.gz.tbi")              , emit: tbi         , optional:true
     tuple val(meta), path("${prefix}*.hard-filtered.vcf.gz")    , emit: vcf_filtered, optional:true
     tuple val(meta), path("${prefix}*.hard-filtered.vcf.gz.tbi"), emit: tbi_filtered, optional:true
-    tuple val(meta), path("${prefix}.tn.*")                     , emit: tbi         , optional:true
     tuple val(meta), path("${prefix}.seg.*")                    , emit: cnv_seg     , optional:true
     tuple val(meta), path("sv/*")                               , emit: sv_extra    , optional:true
     tuple val(meta), path("*.csv")                              , emit: csv         , optional:true
