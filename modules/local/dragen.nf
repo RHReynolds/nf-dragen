@@ -14,12 +14,14 @@ process DRAGEN {
     tuple val(meta), path('*.bai')                              , emit: bai         , optional:true
     tuple val(meta), path('*.cram')                             , emit: cram        , optional:true
     tuple val(meta), path('*.crai')                             , emit: crai        , optional:true
+    tuple val(meta), path('*.bw')                               , emit: bigwig      , optional:true
     tuple val(meta), path('*fastq.gz')                          , emit: fastq       , optional:true
     tuple val(meta), path("${prefix}*.vcf.gz")                  , emit: vcf         , optional:true
     tuple val(meta), path("${prefix}*.vcf.gz.tbi")              , emit: tbi         , optional:true
     tuple val(meta), path("${prefix}*.hard-filtered.vcf.gz")    , emit: vcf_filtered, optional:true
     tuple val(meta), path("${prefix}*.hard-filtered.vcf.gz.tbi"), emit: tbi_filtered, optional:true
-    tuple val(meta), path("${prefix}.seg.*")                    , emit: cnv_seg     , optional:true
+    tuple val(meta), path("${prefix}.cnv*")                     , emit: cnv         , optional:true
+    tuple val(meta), path("${prefix}.sv*")                      , emit: sv          , optional:true
     tuple val(meta), path("sv/*")                               , emit: sv_extra    , optional:true
     tuple val(meta), path("*.csv")                              , emit: csv         , optional:true
     path  "versions.yml"                                        , emit: versions
@@ -61,12 +63,31 @@ process DRAGEN {
 
     stub:
     prefix = task.ext.prefix ?: "${meta.id}"
+    // Generate stub files
+    // Haven't included all possible .csv files, just examples
     """
     touch ${prefix}.bam
+    touch ${prefix}.bam.bai
+    touch ${prefix}.cram
+    touch ${prefix}.cram.crai
     touch ${prefix}.vcf.gz
+    touch ${prefix}.cnv.vcf.gz
+    touch ${prefix}.sv.vcf.gz
     touch ${prefix}.vcf.gz.tbi
+    touch ${prefix}.cnv.vcf.gz.tbi
+    touch ${prefix}.sv.vcf.gz.tbi
     touch ${prefix}.hard-filtered.vcf.gz
     touch ${prefix}.hard-filtered.vcf.gz.tbi
+    touch ${prefix}.seg
+    touch ${prefix}.seg.bw
+    touch ${prefix}.seg.called
+    touch ${prefix}.seg.called.merged
+    touch ${prefix}.seg.called.merged.bw
+    touch ${prefix}.cnv.gff3
+    touch ${prefix}.cnv_metrics.csv
+    touch ${prefix}.fastqc_metrics.csv
+    touch ${prefix}.mapping_metrics.csv
+    touch ${prefix}.wgs_coverage_metrics.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
