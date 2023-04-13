@@ -108,7 +108,12 @@ workflow DRAGEN {
         ch_multiqc_fastqc = FASTQC.out.zip
     }
 
+    //
+    // SUBWORKFLOW: Build index and run DRAGEN
+    //
     if (!params.skip_dragen) {
+
+        ch_multiqc_dragen = Channel.empty()
 
         assert ch_dragen_index || ch_fasta:
             "Must provide a genome fasta file ('--fasta') if no index is given!"
@@ -136,6 +141,7 @@ workflow DRAGEN {
                 ch_dragen_index
             )
             ch_versions = ch_versions.mix(DRAGEN_DNA.out.versions.first())
+            ch_multiqc_dragen = DRAGEN_DNA.out.csv
 
         }
 
@@ -162,6 +168,8 @@ workflow DRAGEN {
                 ch_dragen_index
             )
             ch_versions = ch_versions.mix(DRAGEN_RNA.out.versions.first())
+            ch_multiqc_dragen = DRAGEN_DNA.out.csv
+
 
         }
 
@@ -186,6 +194,7 @@ workflow DRAGEN {
     ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_fastqc.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_dragen.collect{it[1]}.ifEmpty([]))
 
     MULTIQC (
         ch_multiqc_files.collect()
