@@ -23,7 +23,7 @@ process DRAGEN {
     tuple val(meta), path("${prefix}.cnv*")                     , emit: cnv         , optional:true
     tuple val(meta), path("${prefix}.sv*")                      , emit: sv          , optional:true
     tuple val(meta), path("sv/*")                               , emit: sv_extra    , optional:true
-    tuple val(meta), path("*.csv")                              , emit: csv         , optional:true
+    tuple val(meta), path("${prefix}.*.csv")                    , emit: csv         , optional:true
     path  "versions.yml"                                        , emit: versions
 
     script:
