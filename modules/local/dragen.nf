@@ -40,7 +40,7 @@ process DRAGEN {
     if (file_list[0].endsWith('.bam')) {
         input = "-b ${files_in}"
     } else {
-        input = meta.single_end ? "-1 ${files_in}" : "-1 ${files_in[0]} -2 ${files_in[1]}"
+        input = meta.single_end ? "--tumor-fastq1 ${files_in}" : "--tumor-fastq1 ${files_in[0]} --tumor-fastq2 ${files_in[1]}"
         rgid = meta.rgid ? "--RGID ${meta.rgid}" : "--RGID ${meta.id}"
         rgsm = meta.rgsm ? "--RGSM ${meta.rgsm}" : "--RGSM ${meta.id}"
     }
