@@ -39,8 +39,12 @@ process DRAGEN {
     def file_list = files_in.collect { it.toString() }
     if (file_list[0].endsWith('.bam')) {
         input = "-b ${files_in}"
-    } else {
+    } else if(params.tumor_only == true) {
         input = meta.single_end ? "--tumor-fastq1 ${files_in}" : "--tumor-fastq1 ${files_in[0]} --tumor-fastq2 ${files_in[1]}"
+        rgid = meta.rgid ? "--RGID ${meta.rgid}" : "--RGID ${meta.id}"
+        rgsm = meta.rgsm ? "--RGSM ${meta.rgsm}" : "--RGSM ${meta.id}"
+    } else {
+        input = meta.single_end ? "-1 ${files_in}" : "-1 ${files_in[0]} -2 ${files_in[1]}"
         rgid = meta.rgid ? "--RGID ${meta.rgid}" : "--RGID ${meta.id}"
         rgsm = meta.rgsm ? "--RGSM ${meta.rgsm}" : "--RGSM ${meta.id}"
     }
@@ -63,9 +67,20 @@ process DRAGEN {
 
     stub:
     prefix = task.ext.prefix ?: "${meta.id}"
+    def input = ''
+    def file_list = files_in.collect { it.toString() }
+    if (file_list[0].endsWith('.bam')) {
+        input = "-b ${files_in}"
+    } else if(params.tumor_only == true) {
+        input = meta.single_end ? "--tumor-fastq1 ${files_in}" : "--tumor-fastq1 ${files_in[0]} --tumor-fastq2 ${files_in[1]}"
+    } else {
+        input = meta.single_end ? "-1 ${files_in}" : "-1 ${files_in[0]} -2 ${files_in[1]}"
+    }
     // Generate stub files
     // Haven't included all possible .csv files, just examples
+    // Also included input args to double-check logic
     """
+    echo "${input}" > ${prefix}.input.csv
     touch ${prefix}.bam
     touch ${prefix}.bam.bai
     touch ${prefix}.cram

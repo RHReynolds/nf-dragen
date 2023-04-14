@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/nf-core/dragen/master/nextflow_schema.json",
-    "title": "nf-core/dragen pipeline parameters",
+    "$id": "https://raw.githubusercontent.com/nf-dragen/master/nextflow_schema.json",
+    "title": "nf-dragen pipeline parameters",
     "description": "Nextflow pipeline to run Illumina DRAGEN software",
     "type": "object",
     "definitions": {
@@ -58,6 +58,11 @@
                     "type": "boolean",
                     "fa_icon": "fas fa-fast-forward",
                     "description": "Skip DRAGEN"
+                },
+                "tumor_only": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-toolbox",
+                    "description": "Turn on somatic mode (tumor only) for DRAGEN."
                 }
             }
         },
