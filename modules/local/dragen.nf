@@ -41,8 +41,8 @@ process DRAGEN {
         input = "-b ${files_in}"
     } else if(params.tumor_only == true) {
         input = meta.single_end ? "--tumor-fastq1 ${files_in}" : "--tumor-fastq1 ${files_in[0]} --tumor-fastq2 ${files_in[1]}"
-        rgid = meta.rgid ? "--RGID ${meta.rgid}" : "--RGID ${meta.id}"
-        rgsm = meta.rgsm ? "--RGSM ${meta.rgsm}" : "--RGSM ${meta.id}"
+        rgid = meta.rgid ? "--RGID-tumor ${meta.rgid}" : "--RGID-tumor ${meta.id}"
+        rgsm = meta.rgsm ? "--RGSM-tumor ${meta.rgsm}" : "--RGSM-tumor ${meta.id}"
     } else {
         input = meta.single_end ? "-1 ${files_in}" : "-1 ${files_in[0]} -2 ${files_in[1]}"
         rgid = meta.rgid ? "--RGID ${meta.rgid}" : "--RGID ${meta.id}"
@@ -73,6 +73,8 @@ process DRAGEN {
         input = "-b ${files_in}"
     } else if(params.tumor_only == true) {
         input = meta.single_end ? "--tumor-fastq1 ${files_in}" : "--tumor-fastq1 ${files_in[0]} --tumor-fastq2 ${files_in[1]}"
+        rgid = meta.rgid ? "--RGID-tumor ${meta.rgid}" : "--RGID-tumor ${meta.id}"
+        rgsm = meta.rgsm ? "--RGSM-tumor ${meta.rgsm}" : "--RGSM-tumor ${meta.id}"
     } else {
         input = meta.single_end ? "-1 ${files_in}" : "-1 ${files_in[0]} -2 ${files_in[1]}"
     }
@@ -80,7 +82,7 @@ process DRAGEN {
     // Haven't included all possible .csv files, just examples
     // Also included input args to double-check logic
     """
-    echo "${input}" > ${prefix}.input.csv
+    echo "${input}" "${rgid}" "${rgsm}"> ${prefix}.input.csv
     touch ${prefix}.bam
     touch ${prefix}.bam.bai
     touch ${prefix}.cram
